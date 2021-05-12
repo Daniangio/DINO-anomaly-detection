@@ -22,6 +22,8 @@ class AppSettings(BaseSettings):
     train_batch_size: int = 4
 
     model_weights_folder: str
+    vit_model_weights: str
+    dino_model_weights: str
     images_dir: str
 
 

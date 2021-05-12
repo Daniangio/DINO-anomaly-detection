@@ -21,7 +21,6 @@ def stack_to_original(orig, im):
 
 if __name__ == '__main__':
     device = settings.device
-    model_weights_path = os.path.join(settings.model_weights_folder, 'pretrained-net.pt')
 
     model = ViT(
         image_size=settings.image_size,
@@ -32,11 +31,14 @@ if __name__ == '__main__':
         heads=8,
         mlp_dim=2048
     )
-    try:
-        model.load_state_dict(torch.load(model_weights_path, map_location='cpu'), strict=False)
-    except Exception:
-        pass
-    model = model.to(device)
+    vit_model_weights_path = os.path.join(settings.model_weights_folder, settings.vit_model_weights)
+    if os.path.isfile(vit_model_weights_path):
+        model.load_state_dict(torch.load(vit_model_weights_path, map_location='cpu'))
+        print(f'model weights loaded: {vit_model_weights_path}')
+
+    # for param_tensor in model.state_dict():
+    #    print(1, param_tensor, "\t", model.state_dict()[param_tensor][:1, ...])
+    #    break
 
     learner = Dino(
         model,
@@ -52,7 +54,12 @@ if __name__ == '__main__':
         moving_average_decay=0.95,  # moving average of encoder - paper showed anywhere from 0.9 to 0.999 was ok
         center_moving_average_decay=0.95,
         # moving average of teacher centers - paper showed anywhere from 0.9 to 0.999 was ok
-    ).to(device)
+    )
+    dino_model_weights_path = os.path.join(settings.model_weights_folder, settings.dino_model_weights)
+    if os.path.isfile(dino_model_weights_path):
+        model.load_state_dict(torch.load(dino_model_weights_path, map_location='cpu'), strict=False)
+        print(f'model weights loaded: {dino_model_weights_path}')
+    learner = learner.to(device)
 
     opt = torch.optim.Adam(learner.parameters(), lr=settings.lr)
 
@@ -72,7 +79,11 @@ if __name__ == '__main__':
                 learner.update_moving_average()  # update moving average of teacher encoder and teacher centers
             print(f'epoch: {i} - loss: {sum(losses_queue) / len(losses_queue)}')
             losses_queue.clear()
+        # for param_tensor in model.state_dict():
+        #    print(2, param_tensor, "\t", model.state_dict()[param_tensor][:1, ...])
+        #    break
         torch.save(model.state_dict(), model_weights_path)
+        print(f'model weights saved: {model_weights_path}')
 
     if not settings.train:
         model = Recorder(model)
