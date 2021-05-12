@@ -31,12 +31,12 @@ if __name__ == '__main__':
         depth=6,
         heads=8,
         mlp_dim=2048
-    ).to(device)
-    # model = Recorder(model)
+    )
     try:
         model.load_state_dict(torch.load(model_weights_path, map_location='cpu'), strict=False)
     except Exception:
         pass
+    model = model.to(device)
 
     learner = Dino(
         model,
@@ -56,7 +56,7 @@ if __name__ == '__main__':
 
     opt = torch.optim.Adam(learner.parameters(), lr=settings.lr)
 
-    dataset = Dataset(images_dir='data/', images_size=settings.image_size)
+    dataset = Dataset(images_dir=settings.images_dir, images_size=settings.image_size)
 
     if settings.train:
         train_loader = DataLoader(dataset, shuffle=True, batch_size=settings.train_batch_size, num_workers=4)

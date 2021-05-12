@@ -7,3 +7,4 @@
 /data
 /model_weights
 /transformer
+.env

@@ -22,6 +22,7 @@ class AppSettings(BaseSettings):
     train_batch_size: int = 4
 
     model_weights_folder: str
+    images_dir: str
 
 
 settings = AppSettings()
